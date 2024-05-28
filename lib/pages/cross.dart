@@ -3,6 +3,7 @@ import 'package:crossword/crossword.dart';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:tetesi/model/crossword_model.dart';
+import 'package:tetesi/pages/home.dart';
 import 'package:tetesi/utils/utils.dart';
 
 final foundLetters = listSignal([]);
@@ -16,13 +17,11 @@ class Cross extends StatefulWidget {
 }
 
 class _CrossState extends State<Cross> {
-  List<List<String>> letters = [];
   List<Color> lineColors = [];
 
   @override
   void initState() {
     super.initState();
-    letters = generateRandomLetters();
     lineColors = List.generate(100, (index) => generateRandomColor()).toList();
   }
 
@@ -42,7 +41,7 @@ class _CrossState extends State<Cross> {
           Expanded(
             child: Crossword(
               letters: widget.cross.letters,
-              spacing: const Offset(30, 30),
+              spacing: const Offset(28, 28),
               onLineDrawn: (List<String> words) {
                 if (widget.cross.listHint.contains(words.last)) {
                   foundLetters.add(words.last);
@@ -68,7 +67,21 @@ class _CrossState extends State<Cross> {
                   if (letters.length == widget.cross.listHint.length) ...[
                     const SizedBox(height: 10),
                     TextButton(
-                        onPressed: () {}, child: const Text('Next Level'))
+                        onPressed: () {
+                          final list = listCrossWord.watch(context).value;
+                          if ((list?.length ?? 0) > widget.cross.id) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    Cross(cross: list![widget.cross.id + 1]),
+                              ),
+                            );
+                          } else {
+                            Navigator.pushReplacementNamed(context, '/');
+                          }
+                        },
+                        child: const Text('Next Level'))
                   ]
                 ],
               ),

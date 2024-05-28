@@ -1,6 +1,23 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:tetesi/model/crossword_model.dart';
 import 'package:tetesi/pages/cross.dart';
+import 'package:tetesi/utils/utils.dart';
+
+final listCrossWord = futureSignal(() async {
+  late Future<String> jsonString;
+  final List<CrosswordModel> listCrossWord = [];
+  jsonString = rootBundle.loadString('assets/crossword.json');
+  final json = jsonDecode(await jsonString);
+  for (var i in json) {
+    listCrossWord.add(CrosswordModel.fromJson(i));
+  }
+  return listCrossWord;
+});
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -10,102 +27,63 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final list = listCrossWord.watch(context);
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: const Text('Teka Teki Silang'),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text('Teka Teki Silang'),
+        actions: [
+          TextButton(
+              onPressed: () {
+                List<List<String>> letters = generateRandomLetters();
+                log('$letters');
+              },
+              child: const Text('Generate'))
+        ],
+      ),
+      body: SingleChildScrollView(
+          child: list.map(
+        data: (val) {
+          if (val.isEmpty) {
+            return const Center(
+              child: Text('Tidak Ada Data'),
+            );
+          }
+          return Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: val
+                  .map(
+                    (i) => TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Cross(cross: i),
+                            ),
+                          );
+                        },
+                        child: Text('Lv ${i.id}')),
+                  )
+                  .toList(),
+            ),
+          );
+        },
+        error: (error) => Text('$error'),
+        loading: () => const Center(
+          child: CircularProgressIndicator(),
         ),
-        body: SingleChildScrollView(
-          child: Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>  Cross(cross: CrosswordModel(
-                            id: 1,
-                            hint: 'Teknologi',
-                            listHint: ["FLUTTER", "GAMES", "UI", "COLOR"],
-                            letters: [
-                  ["F", "L", "U", "T", "T", "E", "R", "W", "U", "D", "B", "C"],
-                  ["R", "M", "I", "O", "P", "U", "I", "Q", "R", "L", "E", "G"],
-                  ["T", "V", "D", "I", "R", "I", "M", "U", "A", "H", "E", "A"],
-                  ["D", "A", "R", "T", "N", "S", "T", "O", "Y", "J", "R", "M"],
-                  ["O", "G", "A", "M", "E", "S", "C", "O", "L", "O", "R", "O"],
-                  ["S", "R", "T", "I", "I", "I", "F", "X", "S", "P", "E", "D"],
-                  ["Y", "S", "N", "E", "T", "M", "M", "C", "E", "A", "T", "S"],
-                  ["W", "E", "T", "P", "A", "T", "D", "Y", "L", "M", "N", "U"],
-                  ["O", "T", "E", "H", "R", "O", "G", "P", "T", "U", "O", "E"],
-                  ["K", "R", "R", "C", "G", "A", "M", "E", "S", "S", "T", "S"],
-                  ["S", "E", "S", "T", "L", "A", "O", "P", "U", "P", "E", "S"]
-                ]
-                          ),)),
-                    );
-                  },
-                  child: const Text(' Lv 1'))
-            ],
-          ),
-        )
-        // Column(
-        //   children: [
-        //     const SizedBox(height: 20),
-        //     const Text('Hint: Cross Platform, 5 Kata',
-        //         style: TextStyle(fontSize: 24)),
-        //     Expanded(
-        //       child: Crossword(
-        //         letters: const [
-        //           ["F", "L", "U", "T", "T", "E", "R", "W", "U", "D", "B", "C"],
-        //           ["R", "M", "I", "O", "P", "U", "I", "Q", "R", "L", "E", "G"],
-        //           ["T", "V", "D", "I", "R", "I", "M", "U", "A", "H", "E", "A"],
-        //           ["D", "A", "R", "T", "N", "S", "T", "O", "Y", "J", "R", "M"],
-        //           ["O", "G", "A", "M", "E", "S", "C", "O", "L", "O", "R", "O"],
-        //           ["S", "R", "T", "I", "I", "I", "F", "X", "S", "P", "E", "D"],
-        //           ["Y", "S", "N", "E", "T", "M", "M", "C", "E", "A", "T", "S"],
-        //           ["W", "E", "T", "P", "A", "T", "D", "Y", "L", "M", "N", "U"],
-        //           ["O", "T", "E", "H", "R", "O", "G", "P", "T", "U", "O", "E"],
-        //           ["K", "R", "R", "C", "G", "A", "M", "E", "S", "S", "T", "S"],
-        //           ["S", "E", "S", "T", "L", "A", "O", "P", "U", "P", "E", "S"]
-        //         ],
-        //         spacing: const Offset(30, 30),
-        //         onLineDrawn: (List<String> words) {
-        //           if (["FLUTTER", "GAMES", "UI", "COLOR"].contains(words.last)) {
-        //             foundLetters.add(words.last);
-        //           }
-        //         },
-        //         textStyle: const TextStyle(color: Colors.black, fontSize: 20),
-        //         lineDecoration:
-        //             LineDecoration(lineColors: lineColors, strokeWidth: 20),
-        //         hints: const ["FLUTTER", "GAMES", "UI", "COLOR"],
-        //         allowOverlap: true,
-        //       ),
-        //     ),
-        //     Watch((_) {
-        //       final letters = foundLetters.toSet().toList();
-        //       return SizedBox(
-        //         height: 80,
-        //         child: Column(
-        //           children: [
-        //             Wrap(
-        //               spacing: 5,
-        //               children: letters.map((val) => Text(val)).toList(),
-        //             ),
-        //             if (letters.length == 4) ...[
-        //               const SizedBox(height: 10),
-        //               TextButton(
-        //                   onPressed: () {}, child: const Text('Next Level'))
-        //             ]
-        //           ],
-        //         ),
-        //       );
-        //     }),
-        //     const SizedBox(height: 20),
-        //   ],
-        // ),
-        );
+      )),
+    );
   }
 }
