@@ -1,7 +1,43 @@
-import 'package:flutter/material.dart';
-import 'package:tetesi/pages/home.dart';
+// Copyright 2022, the Flutter project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-void main() {
+import 'dart:developer' as dev;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:logging/logging.dart';
+import 'package:provider/provider.dart';
+
+import 'app_lifecycle/app_lifecycle.dart';
+import 'audio/audio_controller.dart';
+import 'player_progress/player_progress.dart';
+import 'router.dart';
+import 'settings/settings.dart';
+import 'style/palette.dart';
+
+void main() async {
+  // Basic logging setup.
+  Logger.root.level = kDebugMode ? Level.FINE : Level.INFO;
+  Logger.root.onRecord.listen((record) {
+    dev.log(
+      record.message,
+      time: record.time,
+      level: record.level.value,
+      name: record.loggerName,
+    );
+  });
+
+  WidgetsFlutterBinding.ensureInitialized();
+  // Put game into full screen mode on mobile devices.
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  // Lock the game to portrait mode on mobile devices.
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
   runApp(const MyApp());
 }
 
@@ -10,14 +46,55 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'TeTeSi',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        useMaterial3: true,
+    return AppLifecycleObserver(
+      child: MultiProvider(
+        providers: [
+          Provider(create: (context) => SettingsController()),
+          Provider(create: (context) => Palette()),
+          ChangeNotifierProvider(create: (context) => PlayerProgress()),
+          // Set up audio.
+          ProxyProvider2<AppLifecycleStateNotifier, SettingsController,
+              AudioController>(
+            create: (context) => AudioController(),
+            update: (context, lifecycleNotifier, settings, audio) {
+              audio!.attachDependencies(lifecycleNotifier, settings);
+              return audio;
+            },
+            dispose: (context, audio) => audio.dispose(),
+            // Ensures that music starts immediately.
+            lazy: false,
+          ),
+        ],
+        child: Builder(builder: (context) {
+          final palette = context.watch<Palette>();
+
+          return MaterialApp.router(
+            title: 'Teka Teki Silang',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData.from(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: palette.darkPen,
+                surface: palette.backgroundMain,
+              ),
+              textTheme: TextTheme(
+                bodyMedium: TextStyle(color: palette.ink),
+              ),
+              useMaterial3: true,
+            ).copyWith(
+              // Make buttons more fun.
+              filledButtonTheme: FilledButtonThemeData(
+                style: FilledButton.styleFrom(
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+            ),
+            routerConfig: router,
+          );
+        }),
       ),
-      home: const Home(),
     );
   }
 }
