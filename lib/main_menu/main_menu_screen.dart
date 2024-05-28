@@ -42,6 +42,14 @@ class MainMenuScreen extends StatelessWidget {
         rectangularMenuArea: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            // MyButton(
+            //   onPressed: () {
+            //   var list =  generateRandomLetters();
+            //   log('$list');
+            //   },
+            //   child: const Text('Random'),
+            // ),
+            // _gap,
             MyButton(
               onPressed: () {
                 audioController.playSfx(SfxType.buttonTap);

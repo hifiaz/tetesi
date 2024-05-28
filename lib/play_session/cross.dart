@@ -31,11 +31,20 @@ class _CrossState extends State<Cross> {
   @override
   Widget build(BuildContext context) {
     final levelState = context.watch<LevelState>();
+    foundLetters.listen(context, () {
+      final letters = foundLetters.toSet().toList();
+      if (letters.length == widget.cross.listHint.length) {
+        levelState.setProgress(100);
+        context.read<AudioController>().playSfx(SfxType.wssh);
+        levelState.evaluate();
+      }
+    });
     return Column(
       children: [
         const SizedBox(height: 20),
         Text(
-            'Petunjuk: ${widget.cross.hint}, ${widget.cross.listHint.length} Kata',
+            'Petunjuk: ${widget.cross.hint}\nTemukan ${widget.cross.listHint.length} Kata',
+            textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 24)),
         Expanded(
           child: Crossword(
@@ -53,6 +62,7 @@ class _CrossState extends State<Cross> {
             allowOverlap: true,
           ),
         ),
+        const SizedBox(height: 10),
         Watch((_) {
           final letters = foundLetters.toSet().toList();
           return SizedBox(
@@ -63,16 +73,6 @@ class _CrossState extends State<Cross> {
                   spacing: 5,
                   children: letters.map((val) => Text(val)).toList(),
                 ),
-                if (letters.length == widget.cross.listHint.length) ...[
-                  const SizedBox(height: 10),
-                  TextButton(
-                      onPressed: () {
-                        levelState.setProgress(100);
-                        context.read<AudioController>().playSfx(SfxType.wssh);
-                        levelState.evaluate();
-                      },
-                      child: const Text('Next Level'))
-                ]
               ],
             ),
           );

@@ -50,7 +50,7 @@ class LevelSelectionScreen extends StatelessWidget {
                               .map(
                                 (level) => ListTile(
                                   enabled: playerProgress.highestLevelReached >=
-                                      level.id,
+                                      level.id - 1,
                                   onTap: () {
                                     final audioController =
                                         context.read<AudioController>();
@@ -60,7 +60,8 @@ class LevelSelectionScreen extends StatelessWidget {
                                         .go('/play/session/${level.id}');
                                   },
                                   leading: Text(level.id.toString()),
-                                  title: Text('Level #${level.id} ${level.hint}'),
+                                  title:
+                                      Text('Level #${level.id} ${level.hint}'),
                                 ),
                               )
                               .toList(),
@@ -68,20 +69,6 @@ class LevelSelectionScreen extends StatelessWidget {
                       },
                       error: (error) => Text('$error'),
                       loading: () => const CircularProgressIndicator())
-
-                  // ListTile(
-                  //   enabled: playerProgress.highestLevelReached >=
-                  //       level.number - 1,
-                  //   onTap: () {
-                  //     final audioController = context.read<AudioController>();
-                  //     audioController.playSfx(SfxType.buttonTap);
-
-                  //     GoRouter.of(context)
-                  //         .go('/play/session/${level.number}');
-                  //   },
-                  //   leading: Text(level.number.toString()),
-                  //   title: Text('Level #${level.number}'),
-                  // )
                 ],
               ),
             ),
