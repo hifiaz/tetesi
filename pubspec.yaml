@@ -21,6 +21,7 @@ dependencies:
   logging: ^1.2.0
   provider: ^6.1.2
   shared_preferences: ^2.2.3
+  google_mobile_ads: ^5.1.0
 
 dev_dependencies:
   flutter_lints: ^4.0.0
@@ -48,4 +49,3 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icons/icon.png"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icons/icon-adaptive-foreground.png"

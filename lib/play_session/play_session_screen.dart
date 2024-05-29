@@ -6,10 +6,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:logging/logging.dart' hide Level;
 import 'package:provider/provider.dart';
 import 'package:tetesi/model/crossword_model.dart';
 import 'package:tetesi/play_session/cross.dart';
+import 'package:tetesi/utils/env.dart';
 
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
@@ -37,6 +39,7 @@ class PlaySessionScreen extends StatefulWidget {
 }
 
 class _PlaySessionScreenState extends State<PlaySessionScreen> {
+  BannerAd? _bannerAd;
   static final _log = Logger('PlaySessionScreen');
 
   static const _celebrationDuration = Duration(milliseconds: 2000);
@@ -50,8 +53,14 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
   @override
   void initState() {
     super.initState();
-
+    _loadAd();
     _startOfPlay = DateTime.now();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
   }
 
   @override
@@ -121,6 +130,18 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
                   ),
                 ),
               ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: SizedBox(
+                  width: AdSize.banner.width.toDouble(),
+                  height: AdSize.banner.height.toDouble(),
+                  child: _bannerAd == null
+                      // Nothing to render yet.
+                      ? const SizedBox()
+                      // The actual ad.
+                      : AdWidget(ad: _bannerAd!),
+                ),
+              ),
             ],
           ),
         ),
@@ -156,5 +177,34 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
     if (!mounted) return;
 
     GoRouter.of(context).go('/play/won', extra: {'score': score});
+  }
+
+  /// Loads a banner ad.
+  void _loadAd() {
+    final bannerAd = BannerAd(
+      size: AdSize.banner,
+      adUnitId: Environment.unitBanner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        // Called when an ad is successfully received.
+        onAdLoaded: (ad) {
+          if (!mounted) {
+            ad.dispose();
+            return;
+          }
+          setState(() {
+            _bannerAd = ad as BannerAd;
+          });
+        },
+        // Called when an ad request failed.
+        onAdFailedToLoad: (ad, error) {
+          debugPrint('BannerAd failed to load: $error');
+          ad.dispose();
+        },
+      ),
+    );
+
+    // Start loading.
+    bannerAd.load();
   }
 }
