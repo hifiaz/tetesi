@@ -13,13 +13,39 @@ const gameLevels = [
   ),
   GameLevel(
     number: 2,
-    difficulty: 42,
+    difficulty: 20,
   ),
   GameLevel(
     number: 3,
+    difficulty: 30,
+  ),
+  GameLevel(
+    number: 4,
+    difficulty: 80,
+  ),
+  GameLevel(
+    number: 5,
     difficulty: 100,
-    achievementIdIOS: 'finished',
-    achievementIdAndroid: 'CdfIhE96aspNWLGSQg',
+  ),
+  GameLevel(
+    number: 6,
+    difficulty: 70,
+  ),
+  GameLevel(
+    number: 7,
+    difficulty: 80,
+  ),
+  GameLevel(
+    number: 8,
+    difficulty: 60,
+  ),
+  GameLevel(
+    number: 9,
+    difficulty: 50,
+  ),
+  GameLevel(
+    number: 10,
+    difficulty: 90,
   ),
 ];
 
