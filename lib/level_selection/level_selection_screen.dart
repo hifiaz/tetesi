@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:tetesi/game_internals/game_controller.dart';
+import 'package:tetesi/play_session/cross.dart';
 
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
@@ -55,7 +56,7 @@ class LevelSelectionScreen extends StatelessWidget {
                                     final audioController =
                                         context.read<AudioController>();
                                     audioController.playSfx(SfxType.buttonTap);
-
+                                    foundLetters.clear();
                                     GoRouter.of(context)
                                         .go('/play/session/${level.id}');
                                   },
