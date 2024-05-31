@@ -47,6 +47,26 @@ const gameLevels = [
     number: 10,
     difficulty: 90,
   ),
+  GameLevel(
+    number: 11,
+    difficulty: 80,
+  ),
+  GameLevel(
+    number: 12,
+    difficulty: 60,
+  ),
+  GameLevel(
+    number: 13,
+    difficulty: 50,
+  ),
+  GameLevel(
+    number: 14,
+    difficulty: 70,
+  ),
+  GameLevel(
+    number: 15,
+    difficulty: 80,
+  ),
 ];
 
 class GameLevel {

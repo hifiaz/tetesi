@@ -39,6 +39,7 @@ class PlaySessionScreen extends StatefulWidget {
 }
 
 class _PlaySessionScreenState extends State<PlaySessionScreen> {
+  RewardedAd? _rewardedAd;
   BannerAd? _bannerAd;
   static final _log = Logger('PlaySessionScreen');
 
@@ -47,12 +48,14 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
   static const _preCelebrationDuration = Duration(milliseconds: 500);
 
   bool _duringCelebration = false;
+  bool _showHint = false;
 
   late DateTime _startOfPlay;
 
   @override
   void initState() {
     super.initState();
+    loadRewardAd();
     _loadAd();
     _startOfPlay = DateTime.now();
   }
@@ -97,14 +100,32 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
                 children: [
                   Align(
                     alignment: Alignment.centerRight,
-                    child: InkResponse(
-                      onTap: () => GoRouter.of(context).push('/settings'),
-                      child: Image.asset(
-                        'assets/images/settings.png',
-                        semanticLabel: 'Settings',
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        InkResponse(
+                          onTap: () {
+                            _showRewardedAd();
+                          },
+                          child: const Icon(
+                            Icons.question_mark,
+                            size: 40,
+                            color: Colors.red,
+                          ),
+                        ),
+                        InkResponse(
+                          onTap: () => GoRouter.of(context).push('/settings'),
+                          child: Image.asset(
+                            'assets/images/settings.png',
+                            semanticLabel: 'Settings',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  if (_showHint)
+                    Text(
+                        'Hint: ${widget.word.listHint.toString().replaceAll('[', '').replaceAll(']', '')}'),
                   Expanded(child: Cross(cross: widget.word)),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -206,5 +227,49 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
 
     // Start loading.
     bannerAd.load();
+  }
+
+  /// Loads a rewarded ad.
+  void loadRewardAd() {
+    RewardedAd.load(
+      adUnitId: Environment.unitReward,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        // Called when an ad is successfully received.
+        onAdLoaded: (ad) {
+          debugPrint('$ad loaded.');
+          // Keep a reference to the ad so you can show it later.
+          _rewardedAd = ad;
+        },
+        // Called when an ad request failed.
+        onAdFailedToLoad: (LoadAdError error) {
+          debugPrint('RewardedAd failed to load: $error');
+        },
+      ),
+    );
+  }
+
+  void _showRewardedAd() {
+    if (_rewardedAd == null) {
+      return;
+    }
+    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (RewardedAd ad) {},
+      onAdDismissedFullScreenContent: (RewardedAd ad) {
+        ad.dispose();
+        loadRewardAd();
+      },
+      onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+        ad.dispose();
+        loadRewardAd();
+      },
+    );
+
+    _rewardedAd!.setImmersiveMode(true);
+    _rewardedAd!.show(
+        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+      setState(() => _showHint = !_showHint);
+    });
+    _rewardedAd = null;
   }
 }
